@@ -1,0 +1,22 @@
+<!-- Это комментарий -->
+<!-- app/templates/home.html -->
+{% extends 'base.html' %}
+
+{% block title %}Hello Homepage{% endblock %}
+
+{% block content %}
+        <h1>Hello from this Homepage!</h1>
+        <p>Your name is {{ context.current_user.username }}. </p>
+        {% if context.current_user.age > 18 %}
+            <p>Your age is {{ context.current_user.age }}.</p>
+            <p>You can pay by credit card.</p>
+        {% else %}
+            <p>You can not pay by your credit card!</p>
+        {% endif %}
+        <hr>
+
+        <h3>List of all posts by {{ context.current_user.username }}</h3>
+        {% for post in context.posts %}
+            <p>{{ post }}</p>
+        {% endfor %}
+{% endblock %}
