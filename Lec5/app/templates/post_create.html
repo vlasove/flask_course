@@ -1,9 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'base_card.html' %}
 
 {% block title %}Create New Post{% endblock %}
 
-{% block content %}
-    <h1>Create New Post</h1>
+
+{% block card_header %}
+    <h3>Create New Post</h3>
+{% endblock %}
+
+
+{% block card_body %}
+    
     <form action="" method="POST" novalidate>
         {{ form.hidden_tag() }}
         <p>
@@ -24,4 +30,10 @@
         <input type="submit" value="Create"> -->
         <button type="submit" class="btn btn-outline-primary">Create Post</button>
     </form>
+{% endblock %}
+
+{% block card_footer %}
+    <span>
+        Back to <a href="{{ url_for('posts_list') }}">to all posts </a>.
+    </span>
 {% endblock %}
