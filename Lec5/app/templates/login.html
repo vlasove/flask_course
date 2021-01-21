@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Log In Page{% endblock %}
+
+
+{% block content %}
+    <h1>Log In Page</h1>
+    <p>You can login via following form:</p>
+    <form method="POST" action="" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.username.label }}<br>
+            {{ form.username(size=32) }}<br>
+            {% for error in form.username.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password.label }}<br>
+            {{ form.password(size=32) }}<br>
+            {% for error in form.password.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.remember.label }} {{ form.remember() }}
+        </p>
+        <button type="submit" class="btn btn-outline-primary">Log In</button>
+    </form>
+{% endblock %}
