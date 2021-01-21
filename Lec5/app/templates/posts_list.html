@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}All Posts{% endblock %}
+
+{% block content %}
+    {% for post in posts %}
+        <div class="card">
+            <div class="card-header text-muted">
+                {{ post.author }} says :
+            </div>
+                
+            <div class="card-body">
+                {{ post.body }}
+            </div>
+
+            <div class="card-footer text-muted text-center">
+                <a href="#">Edit</a> | <a href="#">Delete</a>
+            </div>
+        </div>
+        <br>
+    {% endfor %}
+
+{% endblock %}
