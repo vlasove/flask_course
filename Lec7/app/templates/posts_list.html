@@ -6,12 +6,14 @@
     {% for post in posts %}
         <div class="card">
             <div class="card-header text-muted">
-                {{ post.author }} says :
+                {{ post.author.username }} writes at {{ post.created }}
             </div>
-                
-            <div class="card-body">
-                {{ post.body }}
-            </div>
+            <a href="{{ url_for('post_detail', id=post.id)  }}">  
+                <div class="card-body">
+                    <h3> {{ post.title }} </h3>
+                    <p> {{ post.body }} </p>
+                </div>
+            </a>
 
             <div class="card-footer text-muted text-center">
                 <a href="#">Edit</a> | <a href="#">Delete</a>

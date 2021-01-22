@@ -28,7 +28,7 @@ class UserRegisterForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
-    author = StringField("Author Name" , validators=[DataRequired()])
+    title = StringField('Title', validators=[DataRequired()])
     body = StringField("Post content", validators=[DataRequired()]) 
     submit = SubmitField('Create Post')
 

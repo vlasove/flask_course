@@ -73,20 +73,24 @@ def login():
         form=form,
     )
 
+@app.route('/posts/<int:id>/detail', methods=['GET'])
+@login_required
+def post_detail(id :int):
+    post = Post.query.get_or_404(id)
+    return render_template(
+        'post_detail.html',
+        post=post,
+    )
+
 @app.route('/posts/create', methods=['GET', 'POST'])
 @login_required
 def post_create():
     
     form = PostForm()
     if request.method == 'POST' and form.validate():
-        new_post_author = form.author.data
-        new_post_body = form.body.data
-
-        new_post = {
-            'author' : new_post_author,
-            'body' : new_post_body,
-        } 
-        posts.append(new_post)
+        new_post = Post(title=form.title.data, body=form.body.data, author=current_user)
+        db.session.add(new_post)
+        db.session.commit()
         flash('Post successfully created!')
         return redirect(url_for('posts_list'))
 
@@ -98,10 +102,10 @@ def post_create():
 @app.route('/posts')
 @login_required
 def posts_list():
+    posts = Post.query.all()
     return render_template(
         'posts_list.html',
         posts=posts,
-        user=user,
     )
 
 @app.route('/')

@@ -148,3 +148,123 @@ def register():
 ```
 
 Теперь в случае, если пользователь не залогинен, будут выводиться 2 дополнительных поля (```login```, ```register```). А в случае, если пользователь залогинен - будет видно только 1 поле (```logout```).
+
+
+### Шаг 5. Подключение модели Post к проекту.
+В файле ```app/routes.py```
+```
+@app.route('/posts')
+@login_required
+def posts_list():
+    posts = Post.query.all()
+    return render_template(
+        'posts_list.html',
+        posts=posts,
+    )
+```
+
+В шаблоне же внесем следующие изменения:
+```
+{% extends 'base.html' %}
+
+{% block title %}All Posts{% endblock %}
+
+{% block content %}
+    {% for post in posts %}
+        <div class="card">
+            <div class="card-header text-muted">
+                {{ post.author.username }} writes at {{ post.created }}
+            </div>
+                
+            <div class="card-body">
+                <h3> {{ post.title }} </h3>
+                <p> {{ post.body }} </p>
+            </div>
+
+            <div class="card-footer text-muted text-center">
+                <a href="#">Edit</a> | <a href="#">Delete</a>
+            </div>
+        </div>
+        <br>
+    {% endfor %}
+
+{% endblock %}
+```
+
+### Шаг 6. Создание нового поста
+Поскольку в преокте используется расширение ```flask-login``` (которое предоставляет нам объект ```current_user```), потребность в поле формы ```PostForm.author``` пропала. Будем определять автора поста исходя из того, кто сейчас его создает.
+Для этого внесем изменение в форму ```PostForm```:
+```
+class PostForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    body = StringField("Post content", validators=[DataRequired()]) 
+    submit = SubmitField('Create Post')
+```
+
+После чего изменим правило отображения формы в шаблоне (удалив блок, связанный с показом поля ```author```).
+
+И также необходимо изменить логику создания поста:
+```
+@app.route('/posts/create', methods=['GET', 'POST'])
+@login_required
+def post_create():
+    
+    form = PostForm()
+    if request.method == 'POST' and form.validate():
+        new_post = Post(title=form.title.data, body=form.body.data, author=current_user)
+        db.session.add(new_post)
+        db.session.commit()
+        flash('Post successfully created!')
+        return redirect(url_for('posts_list'))
+
+    return render_template(
+        'post_create.html',
+        form=form,
+    )
+```
+
+### Шаг 7. Реализация детального просмотра для каждого поста
+Первым делом создадим функцию ```post_detail```
+```
+@app.route('/posts/<id>/', methods=['GET'])
+@login_required
+def post_detail(id):
+    post = Post.query.get_or_404(id)
+    return render_template(
+        'post_detail.html',
+        post=post,
+    )
+```
+
+Обратим внимание на то, что данная ссылка является динамической (в ней присутсвуют параметры) с ```<id>``` . ```@app.route(...)``` работает так, что он парсит динамические параметры и передает их на вход функциям, которые декарируются через ```@app.route(...)```.
+
+После этого создадим шаблон для отображения конкретного поста ```post-detail.html```
+```
+{% extends 'base_card.html' %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block card_header %}
+    <h3>{{ post.title }}</h3>
+{% endblock %}
+
+{% block card_body %}
+    <p>
+        <b>{{ post.author.username }}</b> create at {{ post.created }}
+    </p> <hr>
+    <p>
+        {{ post.body }}
+    </p>
+{% endblock %}
+
+{% block card_footer %}
+    <small>
+        <a href="#">Edit</a> | <a href="#">Delete</a>
+    </small>
+{% endblock %}
+```
+
+И в ```posts_list.html``` добавим следующую ссылку :
+```
+<a href="{{ url_for('post_detail', id=post.id) }}">To detail view</a>
+```
