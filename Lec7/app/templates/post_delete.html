@@ -1,0 +1,15 @@
+{% extends 'base_card.html'%}
+
+{% block title %}Post Deleting...{% endblock %}
+
+
+{% block card_header %}
+    <h3>Post Deleting...</h3>
+{% endblock %}
+
+{% block card_body %}
+    <hp>Are yoy sure you want to delete <b>{{ post.title }}</b></p>
+        <form action="" method="POST">
+            <button type="submit" class="btn btn-outline-danger">Delete</button>
+        </form>
+{% endblock %}

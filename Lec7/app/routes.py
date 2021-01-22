@@ -73,6 +73,38 @@ def login():
         form=form,
     )
 
+@app.route('/posts/<id>/update', methods=['GET', 'POST'])
+def post_update(id):
+    post = Post.query.get_or_404(id)
+    form = PostForm(obj=post)
+    if request.method == 'POST' and form.validate():
+        post.title = form.title.data 
+        post.body = form.body.data
+        db.session.add(post)
+        db.session.commit()
+        flash("Successfully updated post")
+        return redirect(url_for("post_detail", id=post.id))
+    return render_template(
+        "post_update.html",
+        post=post,
+        form=form,
+    )
+
+@app.route('/posts/<id>/delete', methods=['GET', 'POST'])
+def post_delete(id):
+    post = Post.query.get_or_404(id)
+    if request.method == 'POST' and post:
+        db.session.delete(post)
+        db.session.commit()
+        flash("Post successfully delted")
+        return redirect(url_for('posts_list'))
+
+    return render_template(
+        'post_delete.html',
+        post=post,
+    )
+
+
 @app.route('/posts/<int:id>/detail', methods=['GET'])
 @login_required
 def post_detail(id :int):

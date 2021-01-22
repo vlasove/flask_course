@@ -16,7 +16,7 @@
             </a>
 
             <div class="card-footer text-muted text-center">
-                <a href="#">Edit</a> | <a href="#">Delete</a>
+                <a href="#">Edit</a> | <a href="{{ url_for('post_delete', id=post.id )}}">Delete</a>
             </div>
         </div>
         <br>
