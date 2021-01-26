@@ -114,4 +114,79 @@ def account():
 ```
 * Блок ```enctype``` говорит о том, что форма будет отправлять не только строковые данные, но еще и какие-то файлы.
 ```
+                <div class="form-group">
+                    {{ form.picture.label() }}
+                    {{ form.picture(class="form-control-file")}}
+                    {% if form.picture.errors %}
+                        {% for error in form.picture.errors %}
+                            <span class="text-danger">{{ error }}</span></br>
+                        {% endfor %}
+                    {% endif %}
+
+                </div>
 ```
+Данный блок отрисовывает поле формы, (лейбл, саму кнопку для добавления файла), а также ошибки формы, в случае их наличия.
+
+* Теперь добавим поле в форму ```UpdateAccountForm```
+```
+from flask_wtf.file import FileField, FileAllowed
+
+class UpdateAccountForm(FlaskForm):
+    ....
+    picture = FileField(label='Account avatar', validators=[FileAllowed(['jpg', 'png'])])
+    ....
+```
+Поле ```FileField``` позволяет прикреплять файлы , а валиадтор ```FileAllowed```  нужен для того, чтобы отсекать невалидные файловые расширения (смотрит только на расширение файла, а не на его контент).
+
+* Теперь обновим ```routes.py```
+```
+import secrets
+import os
+
+def save_picture(form_picture):
+    # Есть одна большая проблема.
+    # Многие медиа-файлы имеют одинаковое название
+    # Решение данной проблемы заключается в следующем:
+    # Генерируем 8-15 случайных символов. Прилепливаем к ним расширение медиа-файла.
+    random_hex = secrets.token_hex(8) 
+    file_ext = form_picture.filename.split('.')[-1]
+    picture_filename = random_hex + "." +  file_ext
+    picture_path = os.path.join(app.root_path, 'static/media/' , picture_filename)
+    # C:/Users/Desktop/flask2/Lec9/ + static/media/ + iudgy1dg32dg1387dg3.png
+    form_picture.save(picture_path)
+
+    return picture_filename
+
+
+
+@app.route('/account', methods=['GET', 'POST'])
+@login_required
+def account():
+    form = UpdateAccountForm(obj=current_user)
+    if request.method == "POST" and form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_picture(form.picture.data)
+            current_user.image_file = picture_file
+        current_user.username = form.username.data 
+        current_user.email = form.email.data 
+        db.session.commit()
+        flash('Your account info successfully updated!', 'success')
+        return redirect(url_for('account'))
+
+    image_file = url_for('static', filename='media/' + current_user.image_file) #static/media/default.png
+    return render_template("account.html", image_file=image_file, form=form)
+
+```
+Функция ```save_picture``` делает следующие действия:
+* Генерирует хеш на 8 символов
+* Затем к этой строке приклеивается расширение файла
+* После чего прописываем путь до этого файла относительно каталога проекта
+* Затем сохраняем файл по выше указанному пути
+* Возвращаем имя файла
+
+А внутри функции ```account```
+* Валидируем форму
+* Если пикчу прилепили, то вызываем ```save_picture```
+* Помещаем имя файла в поле ```curent_user.image_file```
+* Сохраняем пользователя
+

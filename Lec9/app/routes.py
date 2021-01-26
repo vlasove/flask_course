@@ -4,6 +4,8 @@ from app import app, db
 from flask_login import login_user, current_user, logout_user, login_required
 from app.models import User, Post
 from werkzeug.urls import url_parse
+import secrets
+import os
 
 posts = [
     {
@@ -20,12 +22,30 @@ posts = [
     }
 ]
 
+def save_picture(form_picture):
+    # Есть одна большая проблема.
+    # Многие медиа-файлы имеют одинаковое название
+    # Решение данной проблемы заключается в следующем:
+    # Генерируем 8-15 случайных символов. Прилепливаем к ним расширение медиа-файла.
+    random_hex = secrets.token_hex(8) 
+    file_ext = form_picture.filename.split('.')[-1]
+    picture_filename = random_hex + "." +  file_ext
+    picture_path = os.path.join(app.root_path, 'static/media/' , picture_filename)
+    # C:/Users/Desktop/flask2/Lec9/ + static/media/ + iudgy1dg32dg1387dg3.png
+    form_picture.save(picture_path)
+
+    return picture_filename
+
+
 
 @app.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
     form = UpdateAccountForm(obj=current_user)
     if request.method == "POST" and form.validate_on_submit():
+        if form.picture.data:
+            picture_file = save_picture(form.picture.data)
+            current_user.image_file = picture_file
         current_user.username = form.username.data 
         current_user.email = form.email.data 
         db.session.commit()
