@@ -16,20 +16,19 @@ class RegistrationForm(FlaskForm):
 
     def validate_username(self, username):
         """
-        Проверяет, есть ли в бд кто-то с таким имененм.
+        Проверяет, есть ли пользователь с таким username
         """
-        user =  User.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username.data).first()
         if user:
-            raise ValidationError("That username elready exists. Try another.")
+            raise ValidationError('That username is taken. Please choose a different one.')
 
     def validate_email(self, email):
         """
-        Проверяет, есть ли в бд кто-то с таким email
+        Проверяет, есть ли пользователь с таким email
         """
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(email=email.data).first()
         if user:
-            raise ValidationError("That email already exists. Try another.")
-
+            raise ValidationError('That email is taken. Please choose a different one.')
 
 class LoginForm(FlaskForm):
     email = StringField('Email',

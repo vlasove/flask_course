@@ -1,11 +1,9 @@
-
-from app import app , db
-from app.forms import RegistrationForm, LoginForm
-from flask import render_template, redirect, url_for, flash , request
-from app.models import User
-from flask_login import current_user, login_user
+from app.forms import LoginForm, RegistrationForm
+from flask import redirect, url_for, render_template, flash, request
+from app import app, db
+from flask_login import login_user, current_user, logout_user, login_required
+from app.models import User, Post
 from werkzeug.urls import url_parse
-
 
 posts = [
     {
@@ -22,31 +20,38 @@ posts = [
     }
 ]
 
+
+        
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
+
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = RegistrationForm()
-    if request.method == 'POST' and  form.validate_on_submit():
+    if request.method =='POST' and form.validate():
         user = User(username=form.username.data, email=form.email.data)
-        user.set_password(password=form.password.data)
+        user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash(f'Account created for {form.username.data}! Try to login.', 'success')
+        flash('Your account has been created! You are now able to log in', 'success')
         return redirect(url_for('login'))
-    return render_template('register.html',  form=form)
+    return render_template('register.html', form=form)
 
-
-@app.route("/login", methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("home"))
+        return redirect(url_for('home'))
     form = LoginForm()
     if request.method == 'POST' and form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is None or not user.check_password(form.password.data):
             flash("Invalid login credetials", 'danger')
-            return  redirect(url_for("login"))
+            return redirect(url_for('login'))
         login_user(user, remember=form.remember.data)
         flash(f'Successfully logged-in as { user.username }', 'success')
         
@@ -55,6 +60,12 @@ def login():
             next_page = url_for('home')
         return redirect(next_page)
     return render_template("login.html", form=form)
+
+@app.route("/account")
+@login_required
+def account():
+    return render_template('account.html')
+
 
 @app.route("/")
 @app.route("/home")
