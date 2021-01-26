@@ -7,20 +7,12 @@ from werkzeug.urls import url_parse
 import secrets
 import os
 
-posts = [
-    {
-        'author': 'Evgeny Vlasov',
-        'title': 'Blog Post 1',
-        'content': 'First post content',
-        'date_posted': 'Jan 26, 2021'
-    },
-    {
-        'author': 'John Brown',
-        'title': 'Blog Post 2',
-        'content': 'Second post content',
-        'date_posted': 'Jan 26, 2021'
-    }
-]
+
+@app.route('/post/<int:id>/detail')
+@login_required
+def post(id):
+    post = Post.query.get_or_404(id)
+    return render_template('post.html', post=post)
 
 @app.route('/post/new', methods=['GET', 'POST'])
 @login_required
@@ -111,6 +103,7 @@ def login():
 @app.route("/")
 @app.route("/home")
 def home():
+    posts = Post.query.all()
     return render_template("home.html" , posts=posts)
 
 
