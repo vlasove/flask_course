@@ -21,10 +21,17 @@ posts = [
 ]
 
 
-@app.route('/account')
+@app.route('/account', methods=['GET', 'POST'])
 @login_required
 def account():
-    form = UpdateAccountForm()
+    form = UpdateAccountForm(obj=current_user)
+    if request.method == "POST" and form.validate_on_submit():
+        current_user.username = form.username.data 
+        current_user.email = form.email.data 
+        db.session.commit()
+        flash('Your account info successfully updated!', 'success')
+        return redirect(url_for('account'))
+
     image_file = url_for('static', filename='media/' + current_user.image_file) #static/media/default.png
     return render_template("account.html", image_file=image_file, form=form)
 

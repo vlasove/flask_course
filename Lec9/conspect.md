@@ -82,3 +82,36 @@ class UpdateAccountForm(FlaskForm):
     ....
 ```
 Который буквально означает следующее: если в поле username формы написано то же самое, что и у ```current_user.username``` (это озанчает, что пользвоатель не менял значение формы), то валидатор запускаться не будет. В противном случае будет выполнена базовая проверка.
+
+
+* Заходим в ```routes.py``` и определим:
+```
+@app.route('/account', methods=['GET', 'POST'])
+@login_required
+def account():
+    form = UpdateAccountForm(obj=current_user)
+    if request.method == "POST" and form.validate_on_submit():
+        current_user.username = form.username.data 
+        current_user.email = form.email.data 
+        db.session.commit()
+        flash('Your account info successfully updated!', 'success')
+        return redirect(url_for('account'))
+
+    image_file = url_for('static', filename='media/' + current_user.image_file) #static/media/default.png
+    return render_template("account.html", image_file=image_file, form=form)
+```
+
+Логика данного запроса нам уже знакома:
+* Если это запрос ```GET``` - просто показываем форму
+* Если это запрос ```POST``` и форма валидна то: подставляем текущему пользователю данные из формы и сохраняем его в бд.
+Обратим внимание на то, что блок ```db.session.add(....)``` отсутствует. Дело в том, что мы используем в окружении ```FLASK_ENV=development``` , данная директива позволяет ```flask_login.UserMixin``` держать указать на пользователя все время своего существования (это значит что пользователь всегда находится в db.session).
+
+
+### Шаг 4. Добавление картинки.
+Начнем с шаблона:
+```
+<form method="POST" action="" enctype="multipart/form-data">
+```
+* Блок ```enctype``` говорит о том, что форма будет отправлять не только строковые данные, но еще и какие-то файлы.
+```
+```
