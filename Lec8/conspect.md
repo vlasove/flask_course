@@ -64,3 +64,15 @@ flask db init
 flask db migrate -m "init"
 flask db upgrade
 ```
+
+### Шаг 4. Добавление .css файлов
+
+Для того, чтобы добавить ```static``` файлы в проект, необходимо их выключать по следующему правилу.
+```url_for('static', filemame.....)```
+
+Добавим стандартный файл ```static/base.css``` в наш проект. Для этого, в файле ```templates/base.html```
+в тегах ```head``` добавим ссылку.
+```
+    <!-- Custom static files -->
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/base.css') }}">
+```
