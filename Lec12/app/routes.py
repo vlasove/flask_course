@@ -7,6 +7,14 @@ from werkzeug.urls import url_parse
 import secrets
 import os
 
+@app.route('/user/<username>/info')
+@login_required
+def user_posts(username):
+    page = request.args.get('page', 1, type=int)
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = Post.query.filter_by(author=user).order_by(Post.date_posted.desc()).paginate(page=page, per_page=4)
+    return render_template('user_posts.html', posts=posts, user=user)
+
 @app.route('/post/<int:post_id>/delete', methods=['POST'])
 @login_required
 def post_delete(post_id):
@@ -128,7 +136,7 @@ def account():
 def home():
     #http://localhost:8000/home?page=2
     page = request.args.get('page', 1, type=int)
-    posts = Post.query.paginate(page=page, per_page=3)
+    posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=4)
     return render_template("home.html" , posts=posts)
 
 

@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 
 
-{% block title %}Home Page{% endblock %}
+{% block title %}{{ user.username }}'s posts{% endblock %}
 
 {% block content %}
+    <div class="content-section">
+        <div class="media">
+            <img class="rounded-circle account-img" src="{{ url_for('static', filename='media/' + user.image_file) }}">
+            <div class="media-body">
+                <h2 class="account-heading">{{ user.username }}</h2>
+                <p class="text-secondary">{{ user.email }}</p>
+            </div>
+        </div>
+    </div>
+    <h1 class="mb-3">
+        Posts by {{ user.username }} ({{ posts.total }})
+    </h1>
     {% for post in posts.items %}
         <article class="media content-section">
           <img class="rounded-circle article-img" src="{{ url_for('static', filename='media/' + post.author.image_file)}}">
@@ -21,9 +33,9 @@
     {% for page_num in posts.iter_pages() %}
         {% if page_num %}
           {% if posts.page == page_num %}
-            <a class="btn btn-info md-4" href="{{ url_for('home', page=page_num)}}">{{ page_num }}</a>
+            <a class="btn btn-info md-4" href="{{ url_for('user_posts', page=page_num, username=user.username)}}">{{ page_num }}</a>
           {% else %}
-            <a class="btn btn-outline-info md-4" href="{{ url_for('home', page=page_num)}}">{{ page_num }}</a>
+            <a class="btn btn-outline-info md-4" href="{{ url_for('user_posts', page=page_num, username=user.username)}}">{{ page_num }}</a>
           {% endif %}
         {% else %}
         {% endif %}

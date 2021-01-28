@@ -93,3 +93,112 @@ def home():
         {% endif %}
     {% endfor %}
 ```
+
+### Шаг 4. Подсветка текущей страницы
+В шаблоне ```home.html``` исправим блок пагинации:
+```
+{% if posts.page == page_num %}
+            <a class="btn btn-info md-4" href="{{ url_for('home', page=page_num)}}">{{ page_num }}</a>
+          {% else %}
+            <a class="btn btn-outline-info md-4" href="{{ url_for('home', page=page_num)}}">{{ page_num }}</a>
+          {% endif %}
+```
+
+Если страниц очень много, то объект ```posts.iter_pages()``` можно настроить следующим образом:
+```
+.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2)
+```
+Теперь ваши страницы будут разделены друг от друга многоточием
+```
+1 .....12 13
+```
+
+### Шаг 5. Отобразим новые посты сверху, а тухлые - в самом конце
+В руте ```home``` добавим промежуточный метод, генерирующий ```SQL``` запрос ```ORDER BY```
+
+```
+@app.route("/")
+@app.route("/home")
+def home():
+    #http://localhost:8000/home?page=2
+    page = request.args.get('page', 1, type=int)
+    posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=4)
+    return render_template("home.html" , posts=posts)
+```
+
+
+### Шаг 6. Профилирование
+Создадим рут, который будет отображать посты данного пользователя
+```
+@app.route('/user/<username>/info')
+@login_required
+def user_posts(username):
+    page = request.args.get('page', 1, type=int)
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = Post.query.filter_by(author=user).order_by(Post.data_posted.desc()).paginate(page=page, per_page=4)
+    return render_template('user_posts.html', posts=posts, user=user)
+
+```
+
+Теперь нам нужен шаблон ```user_posts.html```
+```
+{% extends "base.html" %}
+
+
+{% block title %}{{ user.username }}'s posts{% endblock %}
+
+{% block content %}
+    <h1 class="mb-3">
+        Posts by {{ user.username }} ({{ posts.total }})
+    </h1>
+    {% for post in posts.items %}
+        <article class="media content-section">
+          <img class="rounded-circle article-img" src="{{ url_for('static', filename='media/' + post.author.image_file)}}">
+          <div class="media-body">
+            <div class="article-metadata">
+              <a class="mr-2" href="{{ url_for('user_posts', username=post.author.username )}}">{{ post.author.username }}</a>
+              <small class="text-muted">{{ post.date_posted.strftime('%Y-%m-%d %H:%M') }}</small>
+            </div>
+            <h2><a class="article-title" href="{{ url_for('post_detail', post_id=post.id)}}">{{ post.title }}</a></h2>
+            <p class="article-content">{{ post.content }}</p>
+          </div>
+        </article>
+    {% endfor %}
+
+    {% for page_num in posts.iter_pages() %}
+        {% if page_num %}
+          {% if posts.page == page_num %}
+            <a class="btn btn-info md-4" href="{{ url_for('home', page=page_num)}}">{{ page_num }}</a>
+          {% else %}
+            <a class="btn btn-outline-info md-4" href="{{ url_for('home', page=page_num)}}">{{ page_num }}</a>
+          {% endif %}
+        {% else %}
+        {% endif %}
+    {% endfor %}
+{% endblock content %}
+```
+
+***Теперь везде, где есть ссылки на пользователя сервиса (конркетно где стоит username) добавим  линку 
+```
+  href="{{ url_for('user_posts', username=post.author.username )}}"
+```
+
+### Шаг 7. Пагинация конкретного юзера
+В шаблоне ```user_posts.html``` исправим пагинацию
+```
+{% for page_num in posts.iter_pages() %}
+        {% if page_num %}
+          {% if posts.page == page_num %}
+            <a class="btn btn-info md-4" href="{{ url_for('user_posts', page=page_num, username=user.username)}}">{{ page_num }}</a>
+          {% else %}
+            <a class="btn btn-outline-info md-4" href="{{ url_for('user_posts', page=page_num, username=user.username)}}">{{ page_num }}</a>
+          {% endif %}
+        {% else %}
+        {% endif %}
+    {% endfor %}
+```
+
+### Шаг 8. Внедрение профиля
+Скопируем профиль из шаблона ```account.html```
+```
+```
