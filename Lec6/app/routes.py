@@ -58,6 +58,7 @@ def login():
 @app.route('/posts/create', methods=['GET', 'POST'])
 @login_required
 def post_create():
+    
     form = PostForm()
     if request.method == 'POST' and form.validate():
         new_post_author = form.author.data

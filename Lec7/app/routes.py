@@ -29,23 +29,8 @@ def register():
     )
 
 
-# Допустим это таблица в бд
-posts = [
-    {
-        'author' : 'Author1',
-        'body' : 'Post body1',
-    },
-    {
-        'author' : 'Author2',
-        'body' : 'Post body2',
-    },
-    {
-        'author' : 'Author3',
-        'body' : 'Post body3',
-    },
-]
-
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('homepage'))
