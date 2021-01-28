@@ -10,6 +10,11 @@
             <div class="media-body">
                 <h2 class="account-heading">{{ user.username }}</h2>
                 <p class="text-secondary">{{ user.email }}</p>
+                {% if user.last_seen %}
+                    <p class="text-secondary text-muted">
+                        Last seen on: {{ user.last_seen.strftime('%Y-%m-%d %H:%M')}}
+                    </p>
+                {% endif %}
             </div>
         </div>
     </div>

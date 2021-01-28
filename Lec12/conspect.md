@@ -186,7 +186,7 @@ def user_posts(username):
 ### Шаг 7. Пагинация конкретного юзера
 В шаблоне ```user_posts.html``` исправим пагинацию
 ```
-{% for page_num in posts.iter_pages() %}
+    {% for page_num in posts.iter_pages() %}
         {% if page_num %}
           {% if posts.page == page_num %}
             <a class="btn btn-info md-4" href="{{ url_for('user_posts', page=page_num, username=user.username)}}">{{ page_num }}</a>
@@ -199,6 +199,63 @@ def user_posts(username):
 ```
 
 ### Шаг 8. Внедрение профиля
-Скопируем профиль из шаблона ```account.html```
+Скопируем профиль из шаблона ```account.html``` и добавим в ```user_posts.html```:
 ```
+  .....
+    <div class="content-section">
+        <div class="media">
+            <img class="rounded-circle account-img" src="{{ url_for('static', filename='media/' + user.image_file) }}">
+            <div class="media-body">
+                <h2 class="account-heading">{{ user.username }}</h2>
+                <p class="text-secondary">{{ user.email }}</p>
+            </div>
+        </div>
+    </div>
+    ......
+```
+
+### Шаг 9. Добавим плашку last seen
+Немного обновим нашу модель (добавим поле last_seen)
+```
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    image_file = db.Column(db.String(20), nullable=False, default='default.png')
+    password_hash = db.Column(db.String(128), nullable=False)
+    last_seen = db.Column(db.DateTime, default=datetime.now) # Новое поле
+    posts = db.relationship('Post', backref='author', lazy=True)
+```
+
+Накатим миграции.
+
+### Шаг 10. Как обновлять это поле?
+Идея - каждый раз, когда пользователь (аутентифицированный)  запрашивает url, напишем функцию, которая бдует сначала обновлять поле ```last_seen``` , а потом перенаправлять на нужную страницу.
+Как этого добиться?
+В ```flask``` существует такой декоратор, который называется ```@app.before_request```. Заходим в ```routes.py```
+```
+from datetime import datetime
+
+# Выполняется перед каждым запросом!
+# Для этого декоратора не важно - залогинен ли юзер или нет.
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.now()
+        db.session.commit()
+
+```
+
+Теперь отобразим в шаблоне, когда юзер был последний раз:
+```user_posts.html```
+```
+....    
+        <h2 class="account-heading">{{ user.username }}</h2>
+                <p class="text-secondary">{{ user.email }}</p>
+                {% if user.last_seen %}
+                    <p class="text-secondary text-muted">
+                        Last seen on: {{ user.last_seen.strftime('%Y-%m-%d %H:%M')}}
+                    </p>
+                {% endif %}
+.....
 ```

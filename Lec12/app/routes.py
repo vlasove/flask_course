@@ -6,6 +6,17 @@ from app.models import User, Post
 from werkzeug.urls import url_parse
 import secrets
 import os
+from datetime import datetime
+
+# Выполняется перед каждым запросом!
+# Для этого декоратора не важно - залогинен ли юзер или нет.
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.now()
+        db.session.commit()
+
+
 
 @app.route('/user/<username>/info')
 @login_required
