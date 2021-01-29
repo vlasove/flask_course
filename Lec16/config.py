@@ -11,6 +11,7 @@ class Config:
     #     port=os.environ.get("DB_PORT"),
     #     db=os.environ.get("DB_NAME")
     # )
+    SERVER_NAME = "74c9a060575b.ngrok.io"
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAIL_SERVER = 'smtp.googlemail.com'
