@@ -1,12 +1,14 @@
 from app.forms import LoginForm, RegistrationForm, UpdateAccountForm, PostForm, PasswordResetRequestForm, PasswordResetForm
 from flask import redirect, url_for, render_template, flash, request, abort
-from app import app, db
+from app import app, db, mail
 from flask_login import login_user, current_user, logout_user, login_required
 from app.models import User, Post
 from werkzeug.urls import url_parse
 import secrets
 import os
 from datetime import datetime
+from flask_mail import Message
+
 
 @app.route('/password_reset/<token>', methods=['GET', 'POST'])
 def password_reset_token(token):
@@ -18,9 +20,31 @@ def password_reset_token(token):
         return redirect(url_for('password_reset'))
     form = PasswordResetForm()
     if request.method == 'POST' and form.validate_on_submit():
-        pass 
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Your password was set. Try to lgin.', 'success')
+        return redirect(url_for('login')) 
     return render_template('password_reset_token.html', form=form)
 
+def reset_email_sender(user):
+    # генерируем токен для пользователя user
+    token = user.get_password_reset_token()
+    msg = Message(
+        'Password Reset Request E-Mail',
+        sender='noreply@localhost.com',
+        recipients = [user.email],
+    )
+    msg.body =f"""
+    To reset your password user the following link: {url_for('password_reset_token', token=token, _external=True)}
+    
+
+    If you did not make this request - ignore this message.
+
+    Regards, @localhost team!
+    """
+
+    mail.send(msg)
+    
 
 @app.route('/password_reset', methods=['GET', 'POST'])
 def password_reset():
@@ -29,9 +53,9 @@ def password_reset():
     form = PasswordResetRequestForm()
     if request.method == 'POST' and form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
-        flash('Password reset token was sended', 'success')
-        print('Sending email to:', user.email,"\n\nWith token:", user.get_password_reset_token())
-        return redirect(url_for('password_reset'))
+        reset_email_sender(user)
+        flash('Password reset token was sended to your email. Check inbox:)', 'info')
+        return redirect(url_for('login'))
     return render_template('password_reset.html', form=form)
 
 # Выполняется перед каждым запросом!

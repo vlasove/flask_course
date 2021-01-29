@@ -16,6 +16,7 @@ flask-migrate = "*"
 psycopg2 = "*"
 flask-login = "*"
 pillow = "*"
+flask-mail = "*"
 
 [requires]
 python_version = "3.9"

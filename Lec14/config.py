@@ -13,3 +13,8 @@ class Config:
     # )
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    MAIL_SERVER = 'smtp.googlemail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = os.environ.get('USER_EMAIL_ADDRESS') # ваш адрес электронной почты
+    MAIL_PASSWORD = os.environ.get('USER_EMAIL_PASSWORD') # ваш пароль от электронной почты
